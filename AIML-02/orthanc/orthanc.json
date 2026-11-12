@@ -1,0 +1,11 @@
+{
+  "Name": "AIML-02 Orthanc",
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "IndexDirectory": "/var/lib/orthanc/db",
+  "StableAge": 5,
+  "RemoteAccessAllowed": true,
+  "AuthenticationEnabled": false,
+  "DicomAet": "ORTHANC",
+  "DicomPort": 4242,
+  "HttpPort": 8042
+}

@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+node_modules/
+dist/
+backend/data/
+data/raw/
+data/processed/
+.venv/
+.pytest_cache/
+*.egg-info/
+# DVC tracks these instead of git when you use `dvc add`
+/data/raw

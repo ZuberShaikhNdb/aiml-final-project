@@ -1,0 +1,26 @@
+services:
+  orthanc:
+    image: jodogne/orthanc:1.12.4
+    ports: ["8042:8042", "4242:4242"]   # 8042 = web/REST, 4242 = DICOM
+    volumes:
+      - ./orthanc/orthanc.json:/etc/orthanc/orthanc.json:ro
+      - orthanc-db:/var/lib/orthanc/db
+  backend:
+    build: ./backend
+    environment:
+      ORTHANC_URL: http://orthanc:8042
+      DATA_DIR: /data
+      WEIGHTS_DIR: /weights
+      DEMO_MODE: ${DEMO_MODE:-false}   # true = untrained placeholder outputs, for UI/pipeline testing ONLY
+    volumes:
+      - ./weights:/weights:ro
+      - backend-data:/data
+    depends_on: [orthanc]
+    ports: ["8000:8000"]
+  frontend:
+    build: ./frontend
+    ports: ["3000:80"]
+    depends_on: [backend]
+volumes:
+  orthanc-db:
+  backend-data:
