@@ -1,0 +1,16 @@
+# Reproducible pipeline. Track raw data first:  dvc add data/raw/nih data/raw/msd
+stages:
+  prepare_labels:
+    cmd: python ml/prepare_nih.py --data-entry data/raw/nih/Data_Entry_2017.csv --img-root data/raw/nih --out data/processed/nih_labels.csv --max-images 20000
+    deps: [ml/prepare_nih.py, data/raw/nih]
+    outs: [data/processed/nih_labels.csv]
+  train_classifier:
+    cmd: python ml/train_classifier.py --csv data/processed/nih_labels.csv --epochs 5
+    deps: [ml/train_classifier.py, data/processed/nih_labels.csv]
+    outs: [weights/classifier.pt, weights/labels.json]
+    metrics: [reports/classifier_metrics.json]
+  train_segmentation:
+    cmd: python ml/train_segmentation.py --data-dir data/raw/msd --epochs 100
+    deps: [ml/train_segmentation.py]
+    outs: [weights/segmentation.pt]
+    metrics: [reports/segmentation_metrics.json]

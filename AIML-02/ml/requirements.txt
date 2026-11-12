@@ -1,0 +1,7 @@
+torch>=2.3
+torchvision>=0.18
+monai[nibabel,tqdm]>=1.3
+pandas>=2.0
+scikit-learn>=1.3
+pillow>=10.2
+numpy>=1.26
