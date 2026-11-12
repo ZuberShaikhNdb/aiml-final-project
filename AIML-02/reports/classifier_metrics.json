@@ -1,0 +1,56 @@
+{
+  "dataset": "NIH ChestX-ray14 (subset)",
+  "model": "DenseNet121 (ImageNet init)",
+  "n_train": 13818,
+  "n_val": 2113,
+  "n_test": 4069,
+  "epochs": 5,
+  "seed": 42,
+  "best_val_mean_auc": 0.8026426024216429,
+  "test_mean_auc": 0.8073319828971682,
+  "test_auc_per_class": {
+    "Atelectasis": 0.7731067398129571,
+    "Cardiomegaly": 0.8677843398742618,
+    "Effusion": 0.8758263587584402,
+    "Infiltration": 0.6970730034039895,
+    "Mass": 0.8336322274652732,
+    "Nodule": 0.7107630172088607,
+    "Pneumonia": 0.736214445907942,
+    "Pneumothorax": 0.8564226577936167,
+    "Consolidation": 0.7817468170723663,
+    "Edema": 0.8898215632068358,
+    "Emphysema": 0.8781890422417399,
+    "Fibrosis": 0.7311441858212028,
+    "Pleural_Thickening": 0.7633127549731038,
+    "Hernia": 0.907610607019765
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.1992140042486783,
+      "val_mean_auc": 0.7247519272721149
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.15801283063652513,
+      "val_mean_auc": 0.7635424145420281
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.14879215379185054,
+      "val_mean_auc": 0.7907652169191011
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.13988941171343894,
+      "val_mean_auc": 0.8019798609610914
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.1315259238547864,
+      "val_mean_auc": 0.8026426024216429
+    }
+  ],
+  "device": "cuda",
+  "trained_at": "2026-11-12 09:29:40"
+}
