@@ -1,0 +1,48 @@
+# Whole platform: Kafka -> consumer -> scoring API (Feast features) -> dashboard, plus MLflow.
+# Needs weights/xgb_full.json, weights/xgb_full_meta.json, feature_repo/data/account_state.parquet and data/replay_sample.csv
+# (produced by training/train_xgb.py and training/export_online_state.py).
+x-app: &app
+  build: .
+  image: fraud-platform:latest
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_NUM_PARTITIONS: 1          # one partition keeps transactions in order (account state depends on it)
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db
+    volumes: ["mlflow-data:/mlflow"]
+    ports: ["5000:5000"]
+  api:
+    <<: *app
+    environment: {STORE: feast, MODEL_TAG: full}
+    volumes: ["events:/data"]
+    ports: ["8000:8000"]
+  consumer:
+    <<: *app
+    command: python serving/consumer.py
+    environment: {KAFKA_BOOTSTRAP: "kafka:9092", API_URL: "http://api:8000"}
+    depends_on: [kafka, api]
+  dashboard:
+    <<: *app
+    command: streamlit run dashboard/app.py --server.port 8501 --server.address 0.0.0.0
+    environment: {API_URL: "http://api:8000"}
+    ports: ["8501:8501"]
+    depends_on: [api]
+  producer:          # start with:  docker compose --profile replay up producer
+    <<: *app
+    profiles: ["replay"]
+    command: python serving/producer.py --csv data/replay_sample.csv --from-step 0 --bootstrap kafka:9092 --rate 50 --limit 20000
+    depends_on: [kafka, consumer]
+volumes: {events: {}, mlflow-data: {}}

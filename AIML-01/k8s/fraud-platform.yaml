@@ -1,0 +1,112 @@
+# Minikube deployment.   minikube start
+#   eval $(minikube docker-env)          (PowerShell: & minikube -p minikube docker-env | Invoke-Expression)
+#   docker build -t fraud-platform:latest .
+#   kubectl apply -f k8s/fraud-platform.yaml
+#   minikube service dashboard           # opens the analyst dashboard
+apiVersion: v1
+kind: Service
+metadata: {name: kafka}
+spec: {selector: {app: kafka}, ports: [{name: broker, port: 9092}, {name: controller, port: 9093}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: kafka}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: kafka}}
+  template:
+    metadata: {labels: {app: kafka}}
+    spec:
+      containers:
+        - name: kafka
+          image: apache/kafka:3.8.0
+          ports: [{containerPort: 9092}, {containerPort: 9093}]
+          env:
+            - {name: KAFKA_NODE_ID, value: "1"}
+            - {name: KAFKA_PROCESS_ROLES, value: "broker,controller"}
+            - {name: KAFKA_LISTENERS, value: "PLAINTEXT://:9092,CONTROLLER://:9093"}
+            - {name: KAFKA_ADVERTISED_LISTENERS, value: "PLAINTEXT://kafka:9092"}
+            - {name: KAFKA_CONTROLLER_LISTENER_NAMES, value: "CONTROLLER"}
+            - {name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP, value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"}
+            - {name: KAFKA_CONTROLLER_QUORUM_VOTERS, value: "1@kafka:9093"}
+            - {name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR, value: "1"}
+            - {name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR, value: "1"}
+            - {name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR, value: "1"}
+            - {name: KAFKA_NUM_PARTITIONS, value: "1"}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: api}
+spec: {selector: {app: api}, ports: [{port: 8000}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: api}
+spec:
+  replicas: 1          # one replica: per-account state is updated in order by a single scorer
+  selector: {matchLabels: {app: api}}
+  template:
+    metadata: {labels: {app: api}}
+    spec:
+      containers:
+        - name: api
+          image: fraud-platform:latest
+          imagePullPolicy: Never
+          ports: [{containerPort: 8000}]
+          env: [{name: STORE, value: feast}, {name: MODEL_TAG, value: full}]
+          readinessProbe: {httpGet: {path: /health, port: 8000}, initialDelaySeconds: 20, periodSeconds: 5}
+          volumeMounts: [{name: data, mountPath: /data}]
+      volumes: [{name: data, emptyDir: {}}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: consumer}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: consumer}}
+  template:
+    metadata: {labels: {app: consumer}}
+    spec:
+      containers:
+        - name: consumer
+          image: fraud-platform:latest
+          imagePullPolicy: Never
+          command: ["python", "serving/consumer.py"]
+          env: [{name: KAFKA_BOOTSTRAP, value: "kafka:9092"}, {name: API_URL, value: "http://api:8000"}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: dashboard}
+spec: {type: NodePort, selector: {app: dashboard}, ports: [{port: 8501}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: dashboard}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: dashboard}}
+  template:
+    metadata: {labels: {app: dashboard}}
+    spec:
+      containers:
+        - name: dashboard
+          image: fraud-platform:latest
+          imagePullPolicy: Never
+          command: ["streamlit", "run", "dashboard/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+          env: [{name: API_URL, value: "http://api:8000"}]
+          ports: [{containerPort: 8501}]
+---
+# Replays the sample into Kafka:  kubectl apply -f k8s/fraud-platform.yaml  then  kubectl create job --from=... or just apply this Job
+apiVersion: batch/v1
+kind: Job
+metadata: {name: replay-producer}
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: producer
+          image: fraud-platform:latest
+          imagePullPolicy: Never
+          command: ["python", "serving/producer.py", "--csv", "data/replay_sample.csv", "--from-step", "0", "--bootstrap", "kafka:9092", "--rate", "50", "--limit", "20000"]

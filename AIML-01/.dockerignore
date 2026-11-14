@@ -1,0 +1,10 @@
+.git
+tests
+reports
+mlruns
+mlflow.db
+*.db
+__pycache__
+data/paysim*.csv
+data/raw
+feature_repo/data/*.db
