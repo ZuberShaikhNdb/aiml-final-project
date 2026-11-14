@@ -1,0 +1,41 @@
+{
+  "blend_weight_xgb": 0.9500000000000001,
+  "xgboost": {
+    "auprc": 0.7858172775895566,
+    "roc_auc": 0.9070225732656799,
+    "precision": 0.7712355212355212,
+    "recall": 0.7377654662973222,
+    "f1": 0.7541293062765455,
+    "threshold": 0.4493825435638428
+  },
+  "graphsage": {
+    "auprc": 0.5467598502928028,
+    "roc_auc": 0.8691904214280894,
+    "precision": 0.6009756097560975,
+    "recall": 0.5687903970452447,
+    "f1": 0.5844402277039848,
+    "threshold": 0.5707797408103943
+  },
+  "blend": {
+    "auprc": 0.7847834047221143,
+    "roc_auc": 0.9078096249561853,
+    "precision": 0.7690086621751684,
+    "recall": 0.7377654662973222,
+    "f1": 0.7530631479736098,
+    "threshold": 0.4336574971675873
+  },
+  "rings_test_period": {
+    "n_flagged": 8766,
+    "n_rings": 1116,
+    "largest_ring": 50,
+    "nodes_in_rings": 2844,
+    "ring_precision_labelled": 0.8004640371229699
+  },
+  "dataset": "Elliptic Bitcoin (temporal split 1-29 / 30-34 / 35-49)",
+  "device": "cuda",
+  "seed": 42,
+  "trained_at": "2026-11-14 15:57:18",
+  "n_train": 26381,
+  "n_val": 3513,
+  "n_test": 16670
+}

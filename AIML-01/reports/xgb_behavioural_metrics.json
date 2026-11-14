@@ -1,0 +1,15 @@
+{
+  "val_auprc": 0.5545463035221009,
+  "test_auprc": 0.6731501428634545,
+  "test_roc_auc": 0.9268877234803337,
+  "test_fraud_rate": 0.03673938002296211,
+  "test_threshold": 0.9695276021957397,
+  "test_precision": 0.7981171548117155,
+  "test_recall": 0.476875,
+  "test_f1": 0.5970266040688575,
+  "test_tp": 763,
+  "test_fp": 193,
+  "test_fn": 837,
+  "test_tn": 41757,
+  "test_alert_rate": 0.021951779563719864
+}

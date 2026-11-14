@@ -1,0 +1,47 @@
+{
+  "rows_total": 6362620,
+  "fraud_total": 8213,
+  "fraud_rate_all": 0.001290820448180152,
+  "rows_scored_types": 2770409,
+  "fraud_rate_scored_types": 0.002964544224336551,
+  "fraud_by_type": [
+    {
+      "type": "CASH_IN",
+      "rows": 1399284,
+      "fraud": 0,
+      "fraud_rate": 0.0
+    },
+    {
+      "type": "CASH_OUT",
+      "rows": 2237500,
+      "fraud": 4116,
+      "fraud_rate": 0.0018395530726256983
+    },
+    {
+      "type": "DEBIT",
+      "rows": 41432,
+      "fraud": 0,
+      "fraud_rate": 0.0
+    },
+    {
+      "type": "PAYMENT",
+      "rows": 2151495,
+      "fraud": 0,
+      "fraud_rate": 0.0
+    },
+    {
+      "type": "TRANSFER",
+      "rows": 532909,
+      "fraud": 4097,
+      "fraud_rate": 0.007687991758442811
+    }
+  ],
+  "median_amount_fraud": 441423.44,
+  "median_amount_legit": 74684.72,
+  "unique_origin_accounts": 6353307,
+  "unique_dest_accounts": 2722362,
+  "share_origins_seen_once": 0.998536510198547,
+  "share_dests_seen_once": 0.8311547105050687,
+  "fraud_per_step_mean": 11.083670715249662,
+  "steps": 743
+}

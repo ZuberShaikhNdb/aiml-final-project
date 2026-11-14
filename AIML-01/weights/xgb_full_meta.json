@@ -1,0 +1,42 @@
+{
+  "features": [
+    "amount_log1p",
+    "is_cash_out",
+    "hour",
+    "amt_vs_orig_mean",
+    "amt_vs_dest_mean",
+    "o_n_prior",
+    "d_n_prior",
+    "o_vel_24h",
+    "d_vel_24h",
+    "oldbalanceOrg",
+    "newbalanceOrg",
+    "oldbalanceDest",
+    "newbalanceDest",
+    "err_orig",
+    "err_dest",
+    "orig_emptied",
+    "dest_empty_before"
+  ],
+  "threshold": 0.5398128628730774,
+  "tag": "full",
+  "train_end": 450,
+  "val_end": 600,
+  "balance_features": true,
+  "trained_at": "2026-11-14 15:53:04",
+  "metrics": {
+    "val_auprc": 0.9994888016293455,
+    "test_auprc": 0.9985131712259372,
+    "test_roc_auc": 0.9998600715137067,
+    "test_fraud_rate": 0.03673938002296211,
+    "test_threshold": 0.5398128628730774,
+    "test_precision": 1.0,
+    "test_recall": 0.9975,
+    "test_f1": 0.9987484355444306,
+    "test_tp": 1596,
+    "test_fp": 0,
+    "test_fn": 4,
+    "test_tn": 41950,
+    "test_alert_rate": 0.03664753157290471
+  }
+}
