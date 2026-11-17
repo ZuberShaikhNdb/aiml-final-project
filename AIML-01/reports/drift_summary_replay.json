@@ -1,0 +1,13 @@
+{
+  "share_drifted": 0.35294117647058826,
+  "drifted_columns": [
+    "amount_log1p",
+    "hour",
+    "d_vel_24h",
+    "oldbalanceOrg",
+    "newbalanceOrg",
+    "err_dest"
+  ],
+  "n_columns": 17,
+  "retrain_triggered": true
+}

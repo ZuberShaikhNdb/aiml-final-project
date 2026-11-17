@@ -12,16 +12,23 @@ def drift_summary(reference: pd.DataFrame, current: pd.DataFrame, html_path=None
         from evidently.presets import DataDriftPreset
         snap = Report([DataDriftPreset()]).run(current_data=current, reference_data=reference)
         d = snap.dict()
-        cols = [m for m in d["metrics"] if "ValueDrift" in str(m.get("metric_name", m.get("metric_id", "")))]
-        drifted = []
-        for m in cols:
-            name = m.get("config", {}).get("column") or str(m.get("metric_name"))
-            thr = m.get("config", {}).get("threshold", 0.1)
-            if m["value"] > thr:  # for Wasserstein/JS style scores a larger value means more drift
-                drifted.append(name)
+        drifted, n, evidently_count = [], 0, None
+        for m in d["metrics"]:
+            cfg = m.get("config", {})
+            if "column" in cfg:  # one ValueDrift metric per column
+                n += 1
+                thr, val = cfg.get("threshold", 0.1), float(m["value"])
+                # p-value tests (K-S, chi-square, ...) flag drift when the value is BELOW the threshold;
+                # distance scores (Wasserstein, Jensen-Shannon, ...) flag drift when it is at or above it.
+                if (val < thr) if "p_value" in str(cfg.get("method", "")) else (val >= thr):
+                    drifted.append(cfg["column"])
+            elif isinstance(m.get("value"), dict) and "count" in m["value"]:
+                evidently_count = int(m["value"]["count"])  # Evidently's own drifted-column count
+        if evidently_count is not None and evidently_count != len(drifted):
+            raise RuntimeError(f"drift parsing disagrees with Evidently: {len(drifted)} vs {evidently_count}")
         if html_path:
             snap.save_html(str(html_path))
-        n = max(len(cols), 1)
+        n = max(n, 1)
     except ImportError:  # legacy Evidently 0.4.x
         from evidently.metric_preset import DataDriftPreset
         from evidently.report import Report

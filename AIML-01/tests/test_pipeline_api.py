@@ -14,7 +14,8 @@ def env(tmp_path_factory, monkeypatch_module=None):
     from training import train_xgb, export_online_state
     m = train_xgb.main(["--csv", str(csv), "--train-end", "120", "--val-end", "170", "--n-estimators", "150",
                         "--out-dir", str(d / "w"), "--reports-dir", str(d / "r"), "--mlflow-uri", f"sqlite:///{d}/mlflow.db"])
-    export_online_state.main(["--csv", str(csv), "--from-step", "171", "--out-dir", str(d / "w"), "--feast-data", str(d / "acct.parquet")])
+    export_online_state.main(["--csv", str(csv), "--from-step", "171", "--out-dir", str(d / "w"), "--feast-data", str(d / "acct.parquet"),
+                                      "--replay-out", str(d / "replay.csv")])
     return d, csv, m
 
 
@@ -79,3 +80,12 @@ def test_drift_detects_shift(env, client):
     assert drift.drift_summary(ref, same)["share_drifted"] < 0.2
     s = drift.drift_summary(ref, shifted, d / "drift.html")
     assert s["share_drifted"] >= 0.3 and (d / "drift.html").exists()
+
+
+def test_drift_pvalue_columns_are_not_inverted(env):
+    """Small samples make Evidently use K-S p-value tests; identical data must NOT be reported as drifted."""
+    from monitoring import drift
+    d, _, _ = env
+    ref = pd.read_parquet(d / "w" / "reference_full.parquet")
+    a, b = ref.sample(400, random_state=1), ref.sample(400, random_state=2)
+    assert drift.drift_summary(ref, a)["share_drifted"] < 0.3 and drift.drift_summary(ref, b)["share_drifted"] < 0.3

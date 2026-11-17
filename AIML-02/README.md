@@ -89,6 +89,17 @@ dvc metrics show
 Per-class AUCs are in `reports/classifier_metrics.md`. The spleen set has only 41 labelled volumes, so the Dice
 value is measured on the split that also selected the checkpoint and is optimistic (see limitations).
 
+## Screenshots
+
+> **These show the viewer and workflow only.** They were captured with `DEMO_MODE=true` on **synthetic** images: the model output and heatmaps are an untrained placeholder (the red banner in each image says so), not results from the trained model. The trained models' real metrics are in **Results** above.
+
+| | |
+|---|---|
+| ![Chest X-ray](docs/screenshots/01_viewer_classification_gradcam.png) | **1. Chest X-ray study.** Scan with adjustable AI overlay (Grad-CAM position), confidence bar, ranked findings, Approve/Reject. |
+| ![CT](docs/screenshots/02_viewer_segmentation_overlay.png) | **2. CT study.** Segmentation mask overlay on the slice with the largest mask, with volume in mL. |
+| ![Approved](docs/screenshots/03_review_approved.png) | **3. Radiologist decision.** Reviewer name and comment, status updated to approved. Note the education-only notice. |
+| ![Audit](docs/screenshots/04_audit_log_verified.png) | **4. Audit log** with the hash-chain integrity check. |
+
 ## Tests
 ```bash
 cd backend && pip install -r requirements.txt -r requirements-dev.txt && pytest -q

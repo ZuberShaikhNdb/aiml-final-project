@@ -54,7 +54,23 @@ The all-features score is near perfect because PaySim's balance fields (`err_ori
 
 GraphSAGE reached 0.94 AUPRC on the validation weeks but only 0.55 on the test weeks, and the blend put 95% of its weight on XGBoost, so **the graph model did not improve on XGBoost here**. Elliptic's later time steps are known to behave differently from earlier ones; we did not test whether that explains the drop. Ring detection (connected components among transactions the blend flags in the test period) found 1,116 candidate rings, largest 50 transactions; 80.0% of the labelled transactions inside rings are truly illicit. Most flagged transactions are unlabelled, so that figure covers only the labelled ones.
 
-**Serving latency** (scoring API with Feast, per transaction): measured during the replay demo, see `/stats` and the dashboard header.
+**Serving latency:** replaying 6,000 transactions through the trained model gave a mean of 3.1 ms and p95 of 4.3 ms per transaction (scoring API with the in-memory account store, measured in a cloud sandbox). A smaller synthetic check with the Feast online store, which adds a read and a write per account, came to about 11 ms median and 15 ms p95. Your machine will differ.
+
+**Replay result (sample of the test period, `data/replay_sample.csv`, first 6,000 transactions).** 404 true frauds (6.7% of this slice), 403 alerted, using the all-features model. This slice is richer in fraud than the full test period and the all-features model benefits from the simulator's balance artefact (see Results above), so read it as a demo of the pipeline, not as a second accuracy estimate.
+
+**Drift check on that replay (Evidently).** 6 of 17 features flagged (35.3%): `amount_log1p`, `hour`, `d_vel_24h`, `oldbalanceOrg`, `newbalanceOrg`, `err_dest`. That is above this project's 30% retraining threshold, so the trigger fired. Evidently's own dataset-level verdict (default 50% threshold) says "not detected". Part of the drift is a sampling effect: the replay slice covers a narrow range of hours and has a much higher fraud rate than the training period.
+
+## Screenshots
+
+Captured by running this repo's code and trained weights end to end: the 6,000-transaction replay through the scoring API, the Streamlit dashboard reading from it, and the drift script on the logged traffic. The case in screenshot 2 was one example analyst action performed through the dashboard form for this walkthrough.
+
+| | |
+|---|---|
+| ![Alerts](docs/screenshots/01_dashboard_alerts.png) | **1. Alert queue.** 6,000 scored, 403 alerts, latency 3.1 / 4.3 ms (avg / p95). Each alert shows the top three reasons from the model. |
+| ![Case](docs/screenshots/02_case_review.png) | **2. Case review.** Status, fraud/legitimate verdict, analyst and note, sent back to the API as a feedback label. |
+| ![Feedback](docs/screenshots/03_feedback_labels.png) | **3. Feedback labels** collected for the next retraining run. |
+| ![Rings](docs/screenshots/04_fraud_rings.png) | **4. Fraud rings.** Empty here: no two alerts in this slice share an account, which matches the EDA finding that PaySim accounts almost never repeat. |
+| ![Drift](docs/screenshots/06_drift_report.png) | **5. Evidently drift report** on the replayed traffic (6 of 17 features drifted). |
 
 ## Run it
 
@@ -100,7 +116,7 @@ See the header comment in `k8s/fraud-platform.yaml`.
 ```bash
 pip install -r requirements.txt && pytest -q
 ```
-The 11 tests use synthetic PaySim-shaped data and cover: online features match training features exactly, the API scores and logs events, alert cases and feedback, ring linking, malformed input, a non-scored type, Evidently detecting an injected shift, the consumer skipping bad messages, EDA and the replay export, and the graph blend and ring maths. They check the plumbing, not model accuracy. Accuracy comes from the training reports. The Feast store was also checked by hand against the real package (apply, materialize, read, write-back; materialized state identical to the in-memory store).
+The 12 tests use synthetic PaySim-shaped data and cover: online features match training features exactly, the API scores and logs events, alert cases and feedback, ring linking, malformed input, a non-scored type, Evidently detecting an injected shift, the consumer skipping bad messages, EDA and the replay export, and the graph blend and ring maths. They check the plumbing, not model accuracy. Accuracy comes from the training reports. The Feast store was also checked by hand against the real package (apply, materialize, read, write-back; materialized state identical to the in-memory store).
 
 Not covered by automated tests: the Kafka producer/consumer against a live broker, Docker and Kubernetes deployment, and the GraphSAGE training loop (it needs PyTorch Geometric and a GPU).
 

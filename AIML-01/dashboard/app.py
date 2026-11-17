@@ -41,6 +41,7 @@ with tab1:
         st.info("No alerts yet. Start the replay producer to stream transactions.")
     else:
         df = pd.DataFrame(rows)[["id", "step", "type", "nameOrig", "nameDest", "amount", "score", "status", "reasons"]]
+        df["reasons"] = df["reasons"].apply(lambda r: "; ".join(json.loads(r)))
         st.dataframe(df, hide_index=True)
         st.subheader("Review a case")
         pick = st.selectbox("Alert id", df["id"])
